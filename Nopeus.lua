@@ -7,7 +7,7 @@
 --- PRIORITY: 999999999
 --- BADGE_COLOR: ff3c3c
 --- PREFIX: nopeus
---- VERSION: 1.0.0
+--- VERSION: 1.0.1
 --- LOADER_VERSION_GEQ: 1.0.0
 
 local setting_tabRef = G.UIDEF.settings_tab
@@ -49,10 +49,10 @@ function Event:init(config)
     self.complete = false
     self.start_timer = config.start_timer or false
     self.func = config.func or function() return true end
-    self.delay = G.SETTINGS.GAMESPEED < 999 and config.delay or (self.trigger == 'ease' and 0.0001 or 0)
     self.no_delete = config.no_delete
     self.created_on_pause = config.pause_force or G.SETTINGS.paused
     self.timer = config.timer or (self.created_on_pause and 'REAL') or 'TOTAL'
+    self.delay = (self.timer == 'REAL' or G.SETTINGS.GAMESPEED < 999) and config.delay or (self.trigger == 'ease' and 0.0001 or 0)
     
     if self.trigger == 'ease' then
         self.ease = {
