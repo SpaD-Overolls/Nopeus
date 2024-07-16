@@ -7,7 +7,7 @@
 --- PRIORITY: 999999999
 --- BADGE_COLOR: ff3c3c
 --- PREFIX: nopeus
---- VERSION: 1.0.1
+--- VERSION: 1.0.2
 --- LOADER_VERSION_GEQ: 1.0.0
 
 local setting_tabRef = G.UIDEF.settings_tab
@@ -77,74 +77,98 @@ function Event:init(config)
     self.time = G.TIMERS[self.timer]
 end
 
-  G.FUNCS.end_consumeable = function(e, delayfac)
-    delayfac = delayfac or 1
-    stop_use()
-    if G.booster_pack then
-      if G.booster_pack_sparkles then G.booster_pack_sparkles:fade(1*delayfac) end
-      if G.booster_pack_stars then G.booster_pack_stars:fade(1*delayfac) end
-      if G.booster_pack_meteors then G.booster_pack_meteors:fade(1*delayfac) end
-      G.booster_pack.alignment.offset.y = G.ROOM.T.y + 9
+local ccr = create_card
 
-      G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,blocking = false, blockable = false,
-      func = function()
-          G.booster_pack:remove()
-          G.booster_pack = nil
-        return true
-      end}))
-      G.E_MANAGER:add_event(Event({trigger = 'after',delay = 1*delayfac,blocking = false, blockable = false,
-      func = function()
-        if G.booster_pack_sparkles then G.booster_pack_sparkles:remove(); G.booster_pack_sparkles = nil end
-        if G.booster_pack_stars then G.booster_pack_stars:remove(); G.booster_pack_stars = nil end
-        if G.booster_pack_meteors then G.booster_pack_meteors:remove(); G.booster_pack_meteors = nil end
-        return true
-      end}))
-    end
+function create_card(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+	if G.SETTINGS.GAMESPEED >= 999 and _type == 'Joker' and area ~= G.jokers then
+		local eternal_perishable_poll = pseudorandom((area == G.pack_cards and 'packetper' or 'etperpoll')..G.GAME.round_resets.ante)
+		local eternal = G.GAME.modifiers.all_eternal or (G.GAME.modifiers.enable_eternals_in_shop and eternal_perishable_poll > 0.7)
+		local perish = G.GAME.modifiers.enable_perishables_in_shop and ((eternal_perishable_poll > 0.4) and (eternal_perishable_poll <= 0.7)) and not eternal
+		local rental = G.GAME.modifiers.enable_rentals_in_shop and pseudorandom((area == G.pack_cards and 'packssjr' or 'ssjr')..G.GAME.round_resets.ante) > 0.7
+		local card = ccr(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+		if card then
+			if eternal then
+				card:set_eternal(true)
+			elseif perish then
+				card:set_perishable(true)
+			end
+			if rental then
+				card:set_rental(true)
+			end
+		end
+		return card
+	else
+		return ccr(_type, area, legendary, _rarity, skip_materialize, soulable, forced_key, key_append)
+	end
+end
 
-    delay(0.2*delayfac)
-    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
-    func = function()
-      G.FUNCS.draw_from_hand_to_deck()
-      G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
-          func = function()
-                if G.shop and G.shop.alignment.offset.py then 
-                  G.shop.alignment.offset.y = G.shop.alignment.offset.py
-                  G.shop.alignment.offset.py = nil
-                end
-                if G.blind_select and G.blind_select.alignment.offset.py then
-                  G.blind_select.alignment.offset.y = G.blind_select.alignment.offset.py
-                  G.blind_select.alignment.offset.py = nil
-                end
-                if G.round_eval and G.round_eval.alignment.offset.py then
-                  G.round_eval.alignment.offset.y = G.round_eval.alignment.offset.py
-                  G.round_eval.alignment.offset.py = nil
-                end
-                G.CONTROLLER.interrupt.focus = true
-                
-                G.E_MANAGER:add_event(Event({func = function()        
-                    if G.shop then G.CONTROLLER:snap_to({node = G.shop:get_UIE_by_ID('next_round_button')}) end
-                return true end }))
-                G.STATE = G.GAME.PACK_INTERRUPT
-                ease_background_colour_blind(G.GAME.PACK_INTERRUPT)
-                G.GAME.PACK_INTERRUPT = nil
-          return true
-      end}))
-      for i = 1, #G.GAME.tags do
-        if G.GAME.tags[i]:apply_to_run({type = 'new_blind_choice'}) then break end
-      end
-      G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
-          func = function()
+G.FUNCS.end_consumeable = function(e, delayfac)
+	delayfac = delayfac or 1
+	stop_use()
+	if G.booster_pack then
+		if G.booster_pack_sparkles then G.booster_pack_sparkles:fade(1*delayfac) end
+		if G.booster_pack_stars then G.booster_pack_stars:fade(1*delayfac) end
+		if G.booster_pack_meteors then G.booster_pack_meteors:fade(1*delayfac) end
+		G.booster_pack.alignment.offset.y = G.ROOM.T.y + 9
+
+		G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,blocking = false, blockable = false,
+		func = function()
+			G.booster_pack:remove()
+			G.booster_pack = nil
+			return true
+		end}))
+		G.E_MANAGER:add_event(Event({trigger = 'after',delay = 1*delayfac,blocking = false, blockable = false,
+		func = function()
+			if G.booster_pack_sparkles then G.booster_pack_sparkles:remove(); G.booster_pack_sparkles = nil end
+			if G.booster_pack_stars then G.booster_pack_stars:remove(); G.booster_pack_stars = nil end
+			if G.booster_pack_meteors then G.booster_pack_meteors:remove(); G.booster_pack_meteors = nil end
+			return true
+		end}))
+	end
+
+	delay(0.2*delayfac)
+	G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
+	func = function()
+		G.FUNCS.draw_from_hand_to_deck()
+		G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
+		func = function()
+			if G.shop and G.shop.alignment.offset.py then 
+				G.shop.alignment.offset.y = G.shop.alignment.offset.py
+				G.shop.alignment.offset.py = nil
+			end
+			if G.blind_select and G.blind_select.alignment.offset.py then
+				G.blind_select.alignment.offset.y = G.blind_select.alignment.offset.py
+				G.blind_select.alignment.offset.py = nil
+			end
+			if G.round_eval and G.round_eval.alignment.offset.py then
+				G.round_eval.alignment.offset.y = G.round_eval.alignment.offset.py
+				G.round_eval.alignment.offset.py = nil
+			end
+			G.CONTROLLER.interrupt.focus = true
+
+			G.E_MANAGER:add_event(Event({func = function()        
+				if G.shop then G.CONTROLLER:snap_to({node = G.shop:get_UIE_by_ID('next_round_button')}) end
+			return true end }))
+			G.STATE = G.GAME.PACK_INTERRUPT
+			ease_background_colour_blind(G.GAME.PACK_INTERRUPT)
+			G.GAME.PACK_INTERRUPT = nil
+		return true
+	end}))
+	for i = 1, #G.GAME.tags do
+		if G.GAME.tags[i]:apply_to_run({type = 'new_blind_choice'}) then break end
+	end
+	G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
+		func = function()
 			G.pack_cards:remove()
 			G.pack_cards = nil
-          return true
-      end}))
+		return true
+	end}))
 
-      G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
-          func = function()
-            save_run()
-            return true
-      end}))
-
-      return true
-    end}))
-  end
+	G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2*delayfac,
+		func = function()
+			save_run()
+			return true
+		end}))
+		return true
+	end}))
+end
