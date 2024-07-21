@@ -7,7 +7,7 @@
 --- PRIORITY: 999999999
 --- BADGE_COLOR: ff3c3c
 --- PREFIX: nopeus
---- VERSION: 1.0.2
+--- VERSION: 1.0.3
 --- LOADER_VERSION_GEQ: 1.0.0
 
 local setting_tabRef = G.UIDEF.settings_tab
