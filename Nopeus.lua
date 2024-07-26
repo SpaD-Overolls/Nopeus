@@ -2,12 +2,12 @@
 
 --- MOD_NAME: Nopeus
 --- MOD_ID: nopeus
---- MOD_AUTHOR: [jenwalter666]
+--- MOD_AUTHOR: [jenwalter666, stupxd]
 --- MOD_DESCRIPTION: An extension of MoreSpeeds which includes more options, including a new speed which makes the event manager run as fast as it can.
 --- PRIORITY: 999999999
 --- BADGE_COLOR: ff3c3c
 --- PREFIX: nopeus
---- VERSION: 1.0.3
+--- VERSION: 1.1.0
 --- LOADER_VERSION_GEQ: 1.0.0
 
 local setting_tabRef = G.UIDEF.settings_tab
