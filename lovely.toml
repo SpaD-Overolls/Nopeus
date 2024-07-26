@@ -1,7 +1,7 @@
 [manifest]
 version = "1.0.0"
 dump_lua = true
-priority = 9999999999
+priority = 99999999
 
 [[patches]]
 [patches.pattern]
@@ -18,3 +18,29 @@ pattern = "if (self == G.hand or self == G.deck or self == G.discard or self == 
 position = "after"
 payload = "self.children = self.children or {}"
 match_indent = true
+
+# Instant deck draw / reshuffle.
+
+[[patches]]
+[patches.pattern]
+target = 'engine/event.lua'
+pattern = "function EventManager:add_event(event, queue, front)"
+position = "after"
+payload = '''
+if event.bypass_event_manager then
+    event.func()
+    return
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.regex]
+target = 'functions/common_events.lua'
+pattern = '''(?<indent>[\t ]*)func = function\(\)\n            if card then'''
+position = "before"
+line_prepend = "$indent"
+payload = '''
+bypass_event_manager = G.SETTINGS.GAMESPEED >= 999 and ((to == G.hand and from == G.deck) or (to == G.deck and from == G.hand)), -- Has to be these specific draws only, otherwise it's buggy
+
+'''
