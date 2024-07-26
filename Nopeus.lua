@@ -53,6 +53,7 @@ function Event:init(config)
     self.created_on_pause = config.pause_force or G.SETTINGS.paused
     self.timer = config.timer or (self.created_on_pause and 'REAL') or 'TOTAL'
     self.delay = (self.timer == 'REAL' or G.SETTINGS.GAMESPEED < 999) and config.delay or (self.trigger == 'ease' and 0.0001 or 0)
+    self.bypass_event_manager = config.bypass_event_manager and true or false
     
     if self.trigger == 'ease' then
         self.ease = {
@@ -114,4 +115,30 @@ G.FUNCS.end_consumeable = function(e, delayfac)
 			G.pack_cards = nil
 		return true
 	end}))
+end
+
+-- Instant reshuffle at end of round
+
+local hand_to_discard = G.FUNCS.draw_from_hand_to_discard
+
+G.FUNCS.draw_from_hand_to_discard = function (e)
+    if G.SETTINGS.GAMESPEED < 999 then
+        return hand_to_discard(e)
+    end
+    
+    for _ = 1, #G.hand.cards do
+        G.discard:draw_card_from(G.hand)
+    end
+end
+
+local discard_to_deck = G.FUNCS.draw_from_discard_to_deck
+
+G.FUNCS.draw_from_discard_to_deck = function (e)
+    if G.SETTINGS.GAMESPEED < 999 then
+        return discard_to_deck(e)
+    end
+    
+    for _ = 1, #G.discard.cards do
+        G.deck:draw_card_from(G.discard)
+    end
 end
