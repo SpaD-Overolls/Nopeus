@@ -53,7 +53,6 @@ function Event:init(config)
     self.created_on_pause = config.pause_force or G.SETTINGS.paused
     self.timer = config.timer or (self.created_on_pause and 'REAL') or 'TOTAL'
     self.delay = (self.timer == 'REAL' or G.SETTINGS.GAMESPEED < 999) and config.delay or (self.trigger == 'ease' and 0.0001 or 0)
-    self.bypass_event_manager = config.bypass_event_manager and true or false
     
     if self.trigger == 'ease' then
         self.ease = {
